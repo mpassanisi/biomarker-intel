@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Biomarker Intelligence — Oncology Research Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0c10;
+  --surface:#111318;
+  --surface2:#181c23;
+  --border:#1e2330;
+  --border2:#252c3a;
+  --accent:#4f8ef7;
+  --accent2:#7c5cfc;
+  --green:#2dca72;
+  --amber:#f5a623;
+  --red:#f7556b;
+  --text:#e8ecf4;
+  --muted:#5a6380;
+  --muted2:#3a4260;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* grid bg */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;
+  opacity:0.4;pointer-events:none;z-index:0
+}
+
+.app{position:relative;z-index:1;display:grid;grid-template-columns:320px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border2);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-header{padding:28px 24px 20px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-0.3px;color:var(--text)}
+.logo span{color:var(--accent)}
+.tagline{font-size:11px;color:var(--muted);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em}
+
+.sidebar-body{padding:20px 24px;flex:1;display:flex;flex-direction:column;gap:20px}
+
+.field-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px}
+input[type=text],select{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);
+  font-family:'Inter',sans-serif;outline:none;transition:border-color .2s
+}
+input[type=text]:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--surface2)}
+
+.regions{display:flex;flex-wrap:wrap;gap:6px}
+.rtag{
+  font-size:12px;padding:5px 11px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface2);color:var(--muted);
+  font-family:'DM Mono',monospace;letter-spacing:0.03em;transition:all .2s;user-select:none
+}
+.rtag.on{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.08)}
+.rtag.on.eu{border-color:#2dca72;color:#2dca72;background:rgba(45,202,114,.08)}
+.rtag.on.asia{border-color:#f5a623;color:#f5a623;background:rgba(245,166,35,.08)}
+.rtag.on.other{border-color:#7c5cfc;color:#7c5cfc;background:rgba(124,92,252,.08)}
+
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.date-sub{font-size:11px;color:var(--muted);margin-bottom:5px;font-family:'DM Mono',monospace}
+
+.run-btn{
+  width:100%;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
+  letter-spacing:0.05em;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:10px;cursor:pointer;transition:opacity .2s,transform .1s;
+  text-transform:uppercase
+}
+.run-btn:hover{opacity:.9;transform:translateY(-1px)}
+.run-btn:active{transform:translateY(0)}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+.sidebar-footer{padding:16px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* MAIN */
+.main{padding:32px;display:flex;flex-direction:column;gap:24px}
+
+.main-header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.main-title{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.5px}
+.main-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.main-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:16px 20px}
+.stat-n{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat-n.blue{color:var(--accent)}
+.stat-n.green{color:var(--green)}
+.stat-n.amber{color:var(--amber)}
+.stat-n.purple{color:var(--accent2)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase}
+
+/* CHART */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:22px}
+.panel-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px}
+
+.bar-item{margin-bottom:14px}
+.bar-head{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px;font-family:'DM Mono',monospace}
+.bar-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:24px}
+.donut-legend{display:flex;flex-direction:column;gap:10px}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;font-family:'DM Mono',monospace}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* RESULTS */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.results-label{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.filter-row{display:flex;gap:8px}
+.fchip{
+  font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface2);color:var(--muted);
+  font-family:'DM Mono',monospace;transition:all .15s
+}
+.fchip.active{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.1)}
+
+.bm-grid{display:flex;flex-direction:column;gap:10px}
+.bm-card{
+  background:var(--surface);border:1px solid var(--border2);border-radius:12px;
+  padding:18px 20px;transition:border-color .2s,transform .15s;cursor:default
+}
+.bm-card:hover{border-color:var(--border2);transform:translateX(2px)}
+.bm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.bm-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.2px}
+.bm-badges{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:5px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase}
+.badge.preclinical{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.25)}
+.badge.clinical{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25)}
+.badge.approved{background:rgba(45,202,114,.12);color:var(--green);border:1px solid rgba(45,202,114,.25)}
+.badge.patented{background:rgba(124,92,252,.12);color:var(--accent2);border:1px solid rgba(124,92,252,.25)}
+.badge.open{background:rgba(90,99,128,.1);color:var(--muted);border:1px solid var(--border2)}
+.bm-uni{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px}
+.bm-dept{color:var(--accent);font-size:11px}
+.bm-summary{font-size:13px;color:#9aa0b8;line-height:1.7}
+.bm-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.bm-region{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2)}
+.bm-year{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2)}
+
+/* LOADING */
+.loading-wrap{text-align:center;padding:48px 0}
+.loading-spinner{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:0.08em}
+.loading-steps{margin-top:12px;font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 0}
+.empty-icon{font-size:40px;margin-bottom:16px;opacity:0.3}
+.empty-txt{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:0.05em}
+
+/* IFRAME SECTION */
+.iframe-section{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:22px}
+.iframe-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.iframe-sub{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:14px}
+.iframe-box{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:14px 16px;position:relative}
+.iframe-code{font-family:'DM Mono',monospace;font-size:11px;color:#6c8ebf;word-break:break-all;line-height:1.8;white-space:pre-wrap}
+.copy-btn{
+  margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--accent);border-radius:7px;background:transparent;
+  color:var(--accent);cursor:pointer;transition:all .15s
+}
+.copy-btn:hover{background:rgba(79,142,247,.1)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .chart-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Biomarker<span>Intel</span></div>
+    <div class="tagline">// oncology research monitor v1.0</div>
+  </div>
+
+  <div class="sidebar-body">
+    <div>
+      <div class="field-label">Indication</div>
+      <input type="text" id="indication" placeholder="e.g. breast cancer, NSCLC..."/>
+    </div>
+
+    <div>
+      <div class="field-label">Regions</div>
+      <div class="regions">
+        <span class="rtag eu on" data-r="EU" onclick="toggleR(this)">EU</span>
+        <span class="rtag us on" data-r="US" onclick="toggleR(this)">US</span>
+        <span class="rtag asia" data-r="ASIA" onclick="toggleR(this)">ASIA</span>
+        <span class="rtag other" data-r="OTHER" onclick="toggleR(this)">OTHER</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label">Period</div>
+      <div class="date-row">
+        <div><div class="date-sub">From</div><input type="text" id="df" value="2022-01-01"/></div>
+        <div><div class="date-sub">To</div><input type="text" id="dt" value="2025-12-31"/></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label">Max results</div>
+      <select id="maxr">
+        <option value="5">5 biomarkers</option>
+        <option value="10" selected>10 biomarkers</option>
+        <option value="15">15 biomarkers</option>
+        <option value="20">20 biomarkers</option>
+      </select>
+    </div>
+
+    <div>
+      <div class="field-label">API Key (Anthropic)</div>
+      <input type="text" id="apikey" placeholder="sk-ant-..." style="font-family:'DM Mono',monospace;font-size:12px"/>
+      <div style="font-size:10px;color:var(--muted2);margin-top:5px;font-family:'DM Mono',monospace">Stored locally only. Never sent elsewhere.</div>
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="runSearch()">▶ RUN SEARCH</button>
+  </div>
+
+  <div class="sidebar-footer">
+    Powered by Claude Sonnet · Anthropic API
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div>
+    <div class="main-title">Oncology <span>Biomarker</span> Intelligence</div>
+    <div class="main-sub" style="margin-top:6px">// real-time university research monitor</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-n blue" id="s-bm">—</div><div class="stat-l">Biomarkers</div></div>
+    <div class="stat-card"><div class="stat-n green" id="s-uni">—</div><div class="stat-l">Universities</div></div>
+    <div class="stat-card"><div class="stat-n amber" id="s-pat">—</div><div class="stat-l">Patented</div></div>
+    <div class="stat-card"><div class="stat-n purple" id="s-clin">—</div><div class="stat-l">In trials</div></div>
+  </div>
+
+  <div class="chart-row" id="charts" style="display:none">
+    <div class="panel">
+      <div class="panel-title">Status breakdown</div>
+      <div id="bar-chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">IP overview</div>
+      <div id="ip-chart"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="results-header">
+      <div class="results-label" id="res-label">Results</div>
+      <div class="filter-row">
+        <span class="fchip active" data-f="all" onclick="filterCards(this)">All</span>
+        <span class="fchip" data-f="preclinical" onclick="filterCards(this)">Preclinical</span>
+        <span class="fchip" data-f="clinical" onclick="filterCards(this)">Clinical</span>
+        <span class="fchip" data-f="approved" onclick="filterCards(this)">Approved</span>
+      </div>
+    </div>
+    <div id="results-area">
+      <div class="empty-state">
+        <div class="empty-icon">⬡</div>
+        <div class="empty-txt">Enter your indication and run a search</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="iframe-section" id="iframe-sec" style="display:none">
+    <div class="iframe-title">Embed code</div>
+    <div class="iframe-sub">Copy this snippet to embed the dashboard on your website</div>
+    <div class="iframe-box"><div class="iframe-code" id="iframe-code"></div></div>
+    <button class="copy-btn" onclick="copyEmbed()">Copy embed code</button>
+  </div>
+
+</main>
+</div>
+
+<script>
+const activeR = new Set(['EU','US']);
+let allData = [];
+let currentFilter = 'all';
+
+function toggleR(el){
+  const r = el.dataset.r;
+  if(activeR.has(r)){if(activeR.size>1){activeR.delete(r);el.classList.remove('on')}}
+  else{activeR.add(r);el.classList.add('on')}
+}
+
+function filterCards(el){
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = el.dataset.f;
+  renderCards(allData);
+}
+
+function renderCards(data){
+  const bms = (data.biomarkers||[]).filter(b=>currentFilter==='all'||b.status===currentFilter);
+  if(!bms.length){
+    document.getElementById('results-area').innerHTML='<div class="empty-state"><div class="empty-icon">⬡</div><div class="empty-txt">No results for this filter</div></div>';
+    return;
+  }
+  const regionFlag = {EU:'🇪🇺',US:'🇺🇸',ASIA:'🌏',OTHER:'🌍'};
+  document.getElementById('results-area').innerHTML='<div class="bm-grid">'+bms.map(b=>`
+    <div class="bm-card">
+      <div class="bm-top">
+        <div class="bm-name">${b.name}</div>
+        <div class="bm-badges">
+          <span class="badge ${b.status}">${b.status}</span>
+          <span class="badge ${b.patented?'patented':'open'}">${b.patented?'Patented':'Open'}</span>
+        </div>
+      </div>
+      <div class="bm-uni">${b.university} · <span class="bm-dept">${b.department}</span></div>
+      <div class="bm-summary">${b.summary}</div>
+      <div class="bm-foot">
+        <span class="bm-region">${regionFlag[b.region]||'🌐'} ${b.region}</span>
+        <span class="bm-year">${b.year}</span>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+function renderCharts(data){
+  const bms = data.biomarkers||[];
+  const statCounts = {preclinical:0,clinical:0,approved:0};
+  bms.forEach(b=>{if(statCounts[b.status]!==undefined)statCounts[b.status]++});
+  const max = Math.max(...Object.values(statCounts),1);
+  const colors = {preclinical:'#f5a623',clinical:'#4f8ef7',approved:'#2dca72'};
+  document.getElementById('bar-chart').innerHTML=Object.entries(statCounts).map(([k,v])=>`
+    <div class="bar-item">
+      <div class="bar-head"><span style="text-transform:capitalize">${k}</span><span>${v}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%;background:${colors[k]}"></div></div>
+    </div>`).join('');
+
+  const patented = bms.filter(b=>b.patented).length;
+  const open = bms.length - patented;
+  const total = bms.length||1;
+  const r=54, cx=70, cy=70, circ=2*Math.PI*r;
+  const patArc = circ*(patented/total);
+  document.getElementById('ip-chart').innerHTML=`
+    <div class="donut-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1e2330" stroke-width="16"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#7c5cfc" stroke-width="16"
+          stroke-dasharray="${patArc} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#3a4260" stroke-width="16"
+          stroke-dasharray="${circ-patArc} ${circ}" stroke-dashoffset="${circ/4-patArc}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+        <text x="${cx}" y="${cy-4}" text-anchor="middle" fill="#e8ecf4" font-family="Syne" font-size="18" font-weight="800">${Math.round(patented/total*100)}%</text>
+        <text x="${cx}" y="${cy+14}" text-anchor="middle" fill="#5a6380" font-family="DM Mono" font-size="9">patented</text>
+      </svg>
+      <div class="donut-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#7c5cfc"></div><span>Patented (${patented})</span></div>
+        <div class="leg-item"><div class="leg-dot" style="background:#3a4260"></div><span>Open (${open})</span></div>
+      </div>
+    </div>`;
+  document.getElementById('charts').style.display='grid';
+}
+
+function setStats(data){
+  const bms=data.biomarkers||[];
+  document.getElementById('s-bm').textContent=bms.length;
+  document.getElementById('s-uni').textContent=new Set(bms.map(b=>b.university)).size;
+  document.getElementById('s-pat').textContent=bms.filter(b=>b.patented).length;
+  document.getElementById('s-clin').textContent=bms.filter(b=>b.status==='clinical').length;
+}
+
+function showEmbed(){
+  const ind=document.getElementById('indication').value;
+  const regions=[...activeR].join(',');
+  const code=`<iframe\n  src="https://biomarker-intel.app/embed?indication=${encodeURIComponent(ind)}&regions=${regions}"\n  width="100%"\n  height="700"\n  frameborder="0"\n  style="border-radius:14px;border:1px solid #1e2330">\n</iframe>`;
+  document.getElementById('iframe-code').textContent=code;
+  document.getElementById('iframe-sec').style.display='block';
+}
+
+function copyEmbed(){
+  const code=document.getElementById('iframe-code').textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.querySelector('.copy-btn');
+    btn.textContent='✓ Copied!';
+    setTimeout(()=>btn.textContent='Copy embed code',2000);
+  });
+}
+
+async function runSearch(){
+  const indication=document.getElementById('indication').value.trim();
+  const apiKey=document.getElementById('apikey').value.trim();
+  if(!indication){alert('Please enter an indication (e.g. breast cancer)');return}
+  if(!apiKey){alert('Please enter your Anthropic API key');return}
+
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;btn.textContent='Loading...';
+  const regions=[...activeR].join(', ');
+  const maxRes=document.getElementById('maxr').value;
+  const df=document.getElementById('df').value;
+  const dt=document.getElementById('dt').value;
+
+  document.getElementById('results-area').innerHTML=`
+    <div class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <div class="loading-txt">QUERYING RESEARCH DATABASES</div>
+      <div class="loading-steps">Scanning PubMed · ClinicalTrials · University repositories...</div>
+    </div>`;
+  document.getElementById('charts').style.display='none';
+  document.getElementById('iframe-sec').style.display='none';
+
+  const prompt=`You are a biomedical research intelligence API. Return ONLY a valid JSON object. No markdown, no preamble, no explanation.
+
+Find up to ${maxRes} real oncology biomarkers actively researched for: ${indication}
+Regions filter: ${regions}
+Period: ${df} to ${dt}
+
+JSON structure:
+{
+  "biomarkers": [
+    {
+      "name": "biomarker name (e.g. HER2, BRCA1, PD-L1, PIK3CA)",
+      "university": "Full official university name",
+      "department": "Department or research lab name",
+      "region": "EU|US|ASIA|OTHER",
+      "year": "year range e.g. 2023-2024",
+      "status": "preclinical|clinical|approved",
+      "patented": true or false,
+      "summary": "2-3 sentences: describe the research focus, mechanism of action, and therapeutic relevance for ${indication}. Be specific and scientifically accurate."
+    }
+  ]
+}
+
+Use only real, verifiable biomarkers and institutions. Distribute across the selected regions. Be precise about patent status and clinical trial phase.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4000,messages:[{role:'user',content:prompt}]})
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error')}
+    const data=await resp.json();
+    const text=(data.content||[]).map(c=>c.text||'').join('');
+    const clean=text.replace(/```json|```/g,'').trim();
+
+    let parsed;
+    try{
+      parsed=JSON.parse(clean);
+    }catch(jsonErr){
+      const arrMatch=clean.match(/\{[\s\S]*"biomarkers"\s*:\s*\[[\s\S]*/);
+      if(!arrMatch)throw new Error('Invalid JSON response from API');
+      let partial=arrMatch[0];
+      const lastComma=partial.lastIndexOf('},');
+      if(lastComma>-1)partial=partial.substring(0,lastComma+1)+']}';
+      else{const lastBrace=partial.lastIndexOf('}');
+        if(lastBrace>-1)partial=partial.substring(0,lastBrace+1)+']}';
+        else throw new Error('Could not recover partial JSON');}
+      try{parsed=JSON.parse(partial);}
+      catch{throw new Error('Response was cut off — try reducing max results to 5 or 10');}
+    }
+    allData=parsed;
+    currentFilter='all';
+    document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+    document.querySelector('.fchip[data-f="all"]').classList.add('active');
+    setStats(parsed);
+    renderCharts(parsed);
+    document.getElementById('res-label').textContent=`${parsed.biomarkers.length} biomarkers — ${indication}`;
+    renderCards(parsed);
+    showEmbed();
+  }catch(e){
+    document.getElementById('results-area').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-txt">Error: ${e.message}</div></div>`;
+  }
+  btn.disabled=false;btn.textContent='▶ RUN SEARCH';
+}
+
+// Save/restore API key
+window.onload=()=>{
+  const saved=localStorage.getItem('bmi_apikey');
+  if(saved)document.getElementById('apikey').value=saved;
+  document.getElementById('apikey').addEventListener('input',e=>localStorage.setItem('bmi_apikey',e.target.value));
+};
+</script>
+</body>
+</html>
